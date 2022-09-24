@@ -75,6 +75,16 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClInclude Include="comm.h" />
+    <ClInclude Include="comm_epoll.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="Server.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="comm.cpp" />
+    <ClCompile Include="comm_epoll.cpp" />
+    <ClCompile Include="main_epoll.cpp" />
+    <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

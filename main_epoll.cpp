@@ -29,6 +29,7 @@ int main(int argc, char** argv)
 	comm->comm_init();
 	comm->commUpdateReadHandler(listen_sock, Server::accept_connection, (void*)stat);
 
+	//设置server的连接状态
 	server->set_comm(comm);
 
 	int ret = -1;

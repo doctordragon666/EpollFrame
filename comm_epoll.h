@@ -2,20 +2,22 @@
 #define _COMM_EPOLL_H_
 
 #include <sys/epoll.h>
-/* epoll需要的全局变量 */
 #include "global.h"
-/* epoll一次处理的最大的事件 */
 
+/// <summary>
+/// epoll封装接口
+/// </summary>
 class CommEpoll
 {
 public:
 	CommEpoll(fde*& fd_table);
 	~CommEpoll();
-	int epoll_instance;//epoll实例句柄
-	struct epoll_event events[MAX_EVENTS];//存放epoll事件的数组
-	int epoll_fds;
-	unsigned int* epoll_state; /* 保存每个epoll 的事件状态 */
 
+	/// <summary>
+	/// 返回epoll操作的字符串格式
+	/// </summary>
+	/// <param name="x">EPOLL_CTL_ADD的操作符号</param>
+	/// <returns>EPOLL_CTL_ADD字符串</returns>
 	static const char* epolltype_atoi(int x);
 
 	/// <summary>
@@ -40,7 +42,7 @@ public:
 	/// <summary>
 	/// 等待epoll事件出现并且处理
 	/// </summary>
-	/// <param name="msec">超时值</param>
+	/// <param name="msec">检查的时间间隔</param>
 	/// <returns>COMM类型的调试信息</returns>
 	int do_epoll_select(int msec);
 
@@ -52,7 +54,11 @@ public:
 	/// <param name="need_write">是否需要写入</param>
 	void epollSetEvents(int fd, int need_read, int need_write);
 private:
-	fde* m_fde_table;
+	fde* m_fde_table;//comm的fde表，减少耦合不使用comm对象
+	struct epoll_event events[MAX_EVENTS];//存放epoll事件的数组
+	int epoll_instance;//epoll实例句柄
+	int epoll_fds;//epoll事件的总和
+	unsigned int* epoll_state; // 保存每个epoll 的事件状态 
 };
 
 #endif // !_COMM_EPOLL_H_

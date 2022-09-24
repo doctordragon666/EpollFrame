@@ -1,6 +1,7 @@
 #include "Server.h"
 
 Comm* Server::m_comm = nullptr;
+int Server::m_timeout = 30;
 
 Server::Server(char* _ip, int _port) :m_port(_port)
 {
@@ -24,13 +25,11 @@ void Server::accept_connection(int fd, void* data)
 	printf("accept\n");
 	if (m_comm == nullptr)
 	{
-		fprintf(stderr, "comm is error---\n");
+		fprintf(stderr, "---comm is error---\n");
 		return;
 	}
 	struct sockaddr_in peer;
 	socklen_t len = sizeof(peer);
-
-	//ConnectStat* stat = (ConnectStat*)data;
 
 	int new_fd = accept(fd, (struct sockaddr*)&peer, &len);
 
@@ -41,11 +40,11 @@ void Server::accept_connection(int fd, void* data)
 
 		printf("new client: %s:%d\n", inet_ntoa(peer.sin_addr), ntohs(peer.sin_port));
 		m_comm->commUpdateWriteHandler(new_fd, do_welcome_handler, (void*)stat);
-		m_comm->commSetTimeout(new_fd, 30, do_echo_timeout, (void*)stat);
+		m_comm->commSetTimeout(new_fd, m_timeout, do_echo_timeout, (void*)stat);
 	}
 	else
 	{
-		DEBUG(5)("accept error!");
+		DEBUG(3)("accept error!");
 	}
 }
 
@@ -74,9 +73,8 @@ void Server::do_echo_handler(int fd, void* data)
 			free(stat);
 			return;
 		}
-		// write(fd,
 		m_comm->commUpdateWriteHandler(fd, do_echo_response, (void*)stat);
-		m_comm->commSetTimeout(fd, 10, do_echo_timeout, (void*)stat);
+		m_comm->commSetTimeout(fd, m_timeout, do_echo_timeout, (void*)stat);
 	}
 	else if (_s == 0) // client:close
 	{
@@ -108,7 +106,7 @@ void Server::do_welcome_handler(int fd, void* data)
 	else
 	{
 		m_comm->commUpdateReadHandler(fd, do_echo_handler, (void*)stat);
-		m_comm->commSetTimeout(fd, 10, do_echo_timeout, (void*)stat);
+		m_comm->commSetTimeout(fd, m_timeout, do_echo_timeout, (void*)stat);
 	}
 
 }
@@ -162,7 +160,7 @@ void Server::do_echo_response(int fd, void* data)
 	}
 	else if (_s == 0)
 	{
-		fprintf(stderr, "Remote connection[fd: %d] has been closed\n", fd);
+		fprintf(stderr, "---Remote connection[fd: %d] has been closed---\n", fd);
 		m_comm->comm_close(fd);
 		free(stat);
 	}

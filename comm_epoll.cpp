@@ -4,11 +4,12 @@ CommEpoll::CommEpoll(fde*& fd_table)
 {
 	m_fde_table = fd_table;
 	epoll_fds = 0;
-	printf("comm_epoll, fd_table%p init\n",m_fde_table);
+	//printf("comm_epoll, fd_table%p init\n",m_fde_table);//为了防止多次构造，可以使用单例模式
 }
 
 CommEpoll::~CommEpoll()
 {
+	do_epoll_shutdown();//忘记关闭在析构关闭
 }
 
 const char* CommEpoll::epolltype_atoi(int x)
@@ -32,31 +33,30 @@ const char* CommEpoll::epolltype_atoi(int x)
 void CommEpoll::comm_call_handlers(int fd, int read_event, int write_event)
 {
 	if (fd < 0)
+	{
 		fprintf(stderr, "file is error");
+		return;
+	}
 
-	fprintf(stderr, "\n%p\n", m_fde_table[fd].read_handler);
 	fde F = m_fde_table[fd];
-
-	//DEBUG(5, 8) ("comm_call_handlers(): got fd=%d read_event=%x write_event=%x F->read_handler=%p F->write_handler=%p\n", fd, read_event, write_event, F->read_handler, F->write_handler);
-
-	if (F.read_handler == nullptr)
-		fprintf(stderr, "error!!!!!!");
-
-	if ((read_event)) {
+	if (F.read_handler && read_event) {
 		PF* hdl = F.read_handler;
-		//void* hdl_data = F->read_data;
-		/*如果描述符是要延迟的，不要处理 */
-
 		DEBUG(5) ("comm_call_handlers(): Calling read handler on fd=%d\n", fd);
 		hdl(fd, F.read_data);
 	}
+	else
+	{
+		DEBUG(3) ("\nread event is null or not set read_handler %p\n", m_fde_table[fd].read_handler);
+	}
 
-	if (F.write_handler && (write_event)) {
+	if (F.write_handler && write_event) {
 
 		PF* hdl = F.write_handler;
-		void* hdl_data = F.write_data;
-
-		hdl(fd, hdl_data);
+		hdl(fd, F.write_data);
+	}
+	else
+	{
+		DEBUG(3) ("\nwrite event is null or not set write_handler %p\n", m_fde_table[fd].read_handler);
 	}
 }
 
@@ -66,7 +66,7 @@ void CommEpoll::do_epoll_init(int max_fd)
 	if (epoll_instance < 0)
 		fprintf(stderr, "do_epoll_init: epoll_create(): %s\n", xstrerror());
 	epoll_state = (unsigned int*)calloc(max_fd, sizeof(unsigned int));
-	if(epoll_state == nullptr)
+	if(!epoll_state)
 		fprintf(stderr, "do_epoll_init: epoll_create(): %s\n", xstrerror());
 	if (Debug) fprintf(stderr, "do_epoll_init: create success.\nepoll_instance:%d, epoll_state:%p\n", epoll_instance, epoll_state);
 }
@@ -95,17 +95,9 @@ int CommEpoll::do_epoll_select(int msec)
 
 	if (num == 0)
 	{
-		DEBUG(5)("select time out or no connect\n");
+		DEBUG(3)("select time out or no connect\n");
 		return COMM_TIMEOUT;
 	}
-		
-
-	if (!events)
-	{
-		printf("event has not assign");
-	}
-
-	//fprintf(stderr, "\n%p\n", m_fde_table[3].read_handler);
 
 	int i;
 	int fd;
@@ -115,7 +107,6 @@ int CommEpoll::do_epoll_select(int msec)
 		fd = tmp_events->data.fd;
 		comm_call_handlers(fd, tmp_events->events & EPOLLOUT, tmp_events->events & EPOLLIN);
 	}
-
 	return COMM_OK;
 }
 
@@ -128,7 +119,6 @@ void CommEpoll::epollSetEvents(int fd, int need_read, int need_write)
 	DEBUG(5)("commSetEvents(fd=%d)\n", fd);
 
 	memset(&ev, 0, sizeof(ev));
-
 	ev.events = 0;
 	ev.data.fd = fd;
 
@@ -157,8 +147,7 @@ void CommEpoll::epollSetEvents(int fd, int need_read, int need_write)
 			epoll_ctl_type = EPOLL_CTL_ADD;
 		}
 
-		/* Update the state */
-		epoll_state[fd] = ev.events;
+		epoll_state[fd] = ev.events;//更新事件
 
 		if (epoll_ctl(epoll_instance, epoll_ctl_type, fd, &ev) < 0)
 		{

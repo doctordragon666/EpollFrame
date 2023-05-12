@@ -1,5 +1,3 @@
-非常抱歉，我的回答不正确。以下是基于 https://github.com/doctordragon666/epoll-frame 项目的 README 修改版：
-
 # epoll-frame
 
 `epoll-frame` 是一个使用 `epoll` I/O 模型进行网络通信的高性能服务器框架。此项目提供了可定制化的底层框架代码，可以根据需要自定义服务器逻辑。

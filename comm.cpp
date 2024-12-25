@@ -36,7 +36,7 @@ time_t Comm::commSetTimeout(int fd, int timeout, PF* handler, void* data)
         F->timeout_handler = NULL;
         F->timeout_data = NULL;
         return F->timeout = (time_t)0;
-    }//Èç¹ûÉèÖÃµÄ³¬Ê±Ğ¡ÓÚÁã·µ»Ø¿Õfde
+    }//å¦‚æœè®¾ç½®çš„è¶…æ—¶å°äºé›¶è¿”å›ç©ºfde
     assert(handler || F->timeout_handler);
     if (handler || data) {
         F->timeout_handler = handler;
@@ -50,7 +50,7 @@ void Comm::comm_close(int fd)
     assert(fd > 0);
     fde* F = &fd_table[fd];
     if (F) memset((void*)F, '\0', sizeof(fde));
-    comm_epoll->epollSetEvents(fd, 0, 0);//Çå¿ÕÕâ¸ösocketÉÏµÄÊÂ¼ş
+    comm_epoll->epollSetEvents(fd, 0, 0);//æ¸…ç©ºè¿™ä¸ªsocketä¸Šçš„äº‹ä»¶
     close(fd);
 }
 
@@ -67,7 +67,7 @@ void Comm::checkTimeouts(void)
         if (F->timeout == 0)
             continue;
         if (F->timeout > sys_curtime)
-            continue;//ÕÒÏÂÒ»¸ö³¬Ê±µÄ
+            continue;//æ‰¾ä¸‹ä¸€ä¸ªè¶…æ—¶çš„
         DEBUG(5) ("checkTimeouts: FD %d Expired\n", fd);
 
         if (F->timeout_handler) {
@@ -85,27 +85,27 @@ void Comm::checkTimeouts(void)
 
 int Comm::comm_select(int msec)
 {
-    static double last_timeout = 0.0;//¾²Ì¬º¯Êı£¬ÉÏÒ»´ÎÔËĞĞÊ±¼ä
+    static double last_timeout = 0.0;//é™æ€å‡½æ•°ï¼Œä¸Šä¸€æ¬¡è¿è¡Œæ—¶é—´
     int rc;
 
     DEBUG(3)("comm_select: timeout %d\n", msec);
 
     msec = msec > MAX_POLL_TIME ? MAX_POLL_TIME : msec;
 
-    /* Ã¿Ò»ÃëÖÓ¼ì²éÒ»ÏÂ³¬Ê± */
+    /* æ¯ä¸€ç§’é’Ÿæ£€æŸ¥ä¸€ä¸‹è¶…æ—¶ */
     if (last_timeout + 0.999 < current_dtime) {
         last_timeout = current_dtime;
         checkTimeouts();
-    }//Èç¹û¾àÀëÉÏÒ»¸öÊ±¼ä¹ıÈ¥ÁËÒ»Ãë£¬¼ì²é³¬Ê±ÊÂ¼ş£¬²¢ÉèÖÃÎªµ±Ç°Ê±¼ä
+    }//å¦‚æœè·ç¦»ä¸Šä¸€ä¸ªæ—¶é—´è¿‡å»äº†ä¸€ç§’ï¼Œæ£€æŸ¥è¶…æ—¶äº‹ä»¶ï¼Œå¹¶è®¾ç½®ä¸ºå½“å‰æ—¶é—´
     else {
         double max_timeout = (last_timeout + 1.0 - current_dtime) * 1000;
         if (max_timeout < msec)
             msec = (int)max_timeout;
-    }//·ñÔòÇó³ö»¹ÓĞ¶àÉÙÊ±¼äµ½ÏÂÒ»Ãë£¬²¢ÇÒ½«Õâ¸öÊ±¼äÉèÖÃÎªµÈ´ıÊ±¼ä
+    }//å¦åˆ™æ±‚å‡ºè¿˜æœ‰å¤šå°‘æ—¶é—´åˆ°ä¸‹ä¸€ç§’ï¼Œå¹¶ä¸”å°†è¿™ä¸ªæ—¶é—´è®¾ç½®ä¸ºç­‰å¾…æ—¶é—´
 
     rc = comm_epoll->do_epoll_select(msec);
 
-    getCurrentTime();//¸üĞÂcurrent_dtime
+    getCurrentTime();//æ›´æ–°current_dtime
 
     if (rc == COMM_TIMEOUT)
         DEBUG(3) ("comm_select: time out\n");

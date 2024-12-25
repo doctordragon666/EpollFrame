@@ -10,68 +10,68 @@ public:
 	~Comm();
 
 	/// <summary>
-	/// ³õÊ¼»¯Á¬½ÓÊı×é£¬È»ºó³õÊ¼»¯epollÁ¬½Ó£¬×îºó³õÊ¼»¯Comm_epollÀà
+	/// åˆå§‹åŒ–è¿æ¥æ•°ç»„ï¼Œç„¶ååˆå§‹åŒ–epollè¿æ¥ï¼Œæœ€ååˆå§‹åŒ–Comm_epollç±»
 	/// </summary>
 	void comm_init();
 
 	/// <summary>
-	/// ÉèÖÃ³¬Ê±º¯Êı£¬ÒÔ¼°³¬Ê±Ê±¼ä
+	/// è®¾ç½®è¶…æ—¶å‡½æ•°ï¼Œä»¥åŠè¶…æ—¶æ—¶é—´
 	/// </summary>
-	/// <param name="fd">ÒªÉèÖÃµÄsocketÃèÊö·û</param>
-	/// <param name="timeout">³¬Ê±Ê±¼ä</param>
-	/// <param name="handler">³¬Ê±´¦Àíº¯Êı</param>
-	/// <param name="data">Êı¾İ</param>
-	/// <returns>³¬Ê±µÄ¾ßÌåÊ±¼ä</returns>
+	/// <param name="fd">è¦è®¾ç½®çš„socketæè¿°ç¬¦</param>
+	/// <param name="timeout">è¶…æ—¶æ—¶é—´</param>
+	/// <param name="handler">è¶…æ—¶å¤„ç†å‡½æ•°</param>
+	/// <param name="data">æ•°æ®</param>
+	/// <returns>è¶…æ—¶çš„å…·ä½“æ—¶é—´</returns>
 	time_t commSetTimeout(int fd, int timeout, PF* handler, void* data);
 
 	/// <summary>
-	/// ¹Ø±ÕÁ¬½Ó
+	/// å…³é—­è¿æ¥
 	/// </summary>
-	/// <param name="fd">socketÎÄ¼şÃèÊö·û</param>
+	/// <param name="fd">socketæ–‡ä»¶æè¿°ç¬¦</param>
 	void comm_close(int fd);
 
 	/// <summary>
-	/// ¼ì²é³¬Ê±µÄ¾ä±ú£¬µ÷ÓÃ³¬Ê±´¦Àí
+	/// æ£€æŸ¥è¶…æ—¶çš„å¥æŸ„ï¼Œè°ƒç”¨è¶…æ—¶å¤„ç†
 	/// </summary>
 	/// <param name=""></param>
 	void checkTimeouts(void);
 
 	/// <summary>
-	/// ´ÓepollÖĞ»ñÈ¡ÊÂ¼ş
+	/// ä»epollä¸­è·å–äº‹ä»¶
 	/// </summary>
-	/// <param name="msec">³¬Ê±Öµ</param>
-	/// <returns>µ÷ÊÔĞÅÏ¢</returns>
+	/// <param name="msec">è¶…æ—¶å€¼</param>
+	/// <returns>è°ƒè¯•ä¿¡æ¯</returns>
 	int comm_select(int msec);
 
 	/// <summary>
-	/// ¹Ø±ÕÁ¬½Ó£¬²¢ÇÒÊÍ·Åfd_table±í
+	/// å…³é—­è¿æ¥ï¼Œå¹¶ä¸”é‡Šæ”¾fd_tableè¡¨
 	/// </summary>
 	/// <param name=""></param>
 	void comm_select_shutdown(void);
 
 	/// <summary>
-	/// ¸üĞÂĞ´ÊÂ¼ş
+	/// æ›´æ–°å†™äº‹ä»¶
 	/// </summary>
-	/// <param name="fd">ÉèÖÃµÄ¾ä±ú</param>
-	/// <param name="handler">»Øµ÷º¯Êı</param>
-	/// <param name="data">Á¬½Ó×´Ì¬void*</param>
+	/// <param name="fd">è®¾ç½®çš„å¥æŸ„</param>
+	/// <param name="handler">å›è°ƒå‡½æ•°</param>
+	/// <param name="data">è¿æ¥çŠ¶æ€void*</param>
 	void commUpdateWriteHandler(int fd, PF* handler, void* data);
 	
 	/// <summary>
-	/// ¸üĞÂfdÊı×éÖĞµÄ¶ÁÊÂ¼ş+1£¬ÒÔ¼°´«µİ²ÎÊıºÍ»Øµ÷º¯Êı
+	/// æ›´æ–°fdæ•°ç»„ä¸­çš„è¯»äº‹ä»¶+1ï¼Œä»¥åŠä¼ é€’å‚æ•°å’Œå›è°ƒå‡½æ•°
 	/// </summary>
-	/// <param name="fd">²Ù×÷µÄsocketÃèÊö·û</param>
-	/// <param name="handler">¶ÁÊÂ¼şµÄ»Øµ÷º¯Êı</param>
-	/// <param name="data">Êı¾İ</param>
+	/// <param name="fd">æ“ä½œçš„socketæè¿°ç¬¦</param>
+	/// <param name="handler">è¯»äº‹ä»¶çš„å›è°ƒå‡½æ•°</param>
+	/// <param name="data">æ•°æ®</param>
 	void commUpdateReadHandler(int fd, PF* handler, void* data);
 
 private:
-	int Biggest_FD = 1024;  /* Ä¬ÈÏµÄ×î´óÎÄ¼şÃèÊö·ûÊıÁ¿ 1024 */
-	int MAX_POLL_TIME = 1000;	// epoll×î´ó»ñÈ¡ÊÂ¼şµÄ¼ä¸ô
-	CommEpoll* comm_epoll;//µ÷ÓÃepollµÄ½Ó¿Ú
+	int Biggest_FD = 1024;  /* é»˜è®¤çš„æœ€å¤§æ–‡ä»¶æè¿°ç¬¦æ•°é‡ 1024 */
+	int MAX_POLL_TIME = 1000;	// epollæœ€å¤§è·å–äº‹ä»¶çš„é—´éš”
+	CommEpoll* comm_epoll;//è°ƒç”¨epollçš„æ¥å£
 
 public:
-	fde* fd_table = nullptr;//¾ä±ú±í£¬ÔÊĞíÍâ²¿±äÁ¿ĞŞ¸ÄÕâ¸öÖµ£¬²»ÊÊÓÃÇÅ½ÓÄ£Ê½À´¸üĞÂ
+	fde* fd_table = nullptr;//å¥æŸ„è¡¨ï¼Œå…è®¸å¤–éƒ¨å˜é‡ä¿®æ”¹è¿™ä¸ªå€¼ï¼Œä¸é€‚ç”¨æ¡¥æ¥æ¨¡å¼æ¥æ›´æ–°
 };
 
 #endif // !_COMM_H

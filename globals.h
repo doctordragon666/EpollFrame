@@ -29,7 +29,7 @@
 #define COMM_ERR_DNS     (-8)
 #define COMM_ERR_CLOSING (-9)
 
-
+#define _XOPEN_SOURCE
 //调试相关
 #define DEBUG_LEVEL  0
 #define DEBUG_ONLY   8

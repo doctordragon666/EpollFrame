@@ -8,21 +8,21 @@ struct ConnectStat
 {
 	int fd;
 	char send_buf[BUFLEN];
-	PF* handler; //²»Í¬Ò³ÃæµÄ´¦Àíº¯Êı
+	PF* handler; //ä¸åŒé¡µé¢çš„å¤„ç†å‡½æ•°
 
 	/// <summary>
-	/// ³õÊ¼»¯Á¬½Ó
+	/// åˆå§‹åŒ–è¿æ¥
 	/// </summary>
-	/// <param name="fd">Á¬½Ó¾ä±ú</param>
+	/// <param name="fd">è¿æ¥å¥æŸ„</param>
 	/// <returns></returns>
 	ConnectStat(int fd)
 	{
 		this->fd = fd;
 	}
 	/// <summary>
-	/// ÉèÖÃ·Ç×èÈû
+	/// è®¾ç½®éé˜»å¡
 	/// </summary>
-	/// <param name="fd">·şÎñÆ÷¾ä±ú</param>
+	/// <param name="fd">æœåŠ¡å™¨å¥æŸ„</param>
 	void set_nonblock()
 	{
 		int fl = fcntl(this->fd, F_GETFL);
@@ -31,12 +31,12 @@ struct ConnectStat
 };
 
 /// <summary>
-/// Á÷³Ì¸ÅÊö
-/// 1¡¢ÏÈµÈ´ı»Øµ÷accept_connection
-/// 2¡¢Ö´ĞĞdo_welcome_handler
-/// 3¡¢Ö´ĞĞdo_echo_handler
-/// 4¡¢Ö´ĞĞdo_echo_response
-/// Ñ­»·Ö´ĞĞ3£¬4
+/// æµç¨‹æ¦‚è¿°
+/// 1ã€å…ˆç­‰å¾…å›è°ƒaccept_connection
+/// 2ã€æ‰§è¡Œdo_welcome_handler
+/// 3ã€æ‰§è¡Œdo_echo_handler
+/// 4ã€æ‰§è¡Œdo_echo_response
+/// å¾ªç¯æ‰§è¡Œ3ï¼Œ4
 /// </summary>
 class Server
 {
@@ -45,58 +45,58 @@ public:
 	~Server();
 
 	/// <summary>
-	/// ÉèÖÃÍ¨ÓÃ½Ó¿ÚÁ¬½Ó
+	/// è®¾ç½®é€šç”¨æ¥å£è¿æ¥
 	/// </summary>
 	/// <param name="comm"></param>
 	static void set_comm(Comm*& comm);
 
 	/// <summary>
-	/// ½ÓÊÜÁ¬½Ó
+	/// æ¥å—è¿æ¥
 	/// </summary>
 	/// <param name="fd"></param>
 	/// <param name="data"></param>
 	static void accept_connection(int fd, void* data);
 
 	/// <summary>
-	/// ´´½¨Ò»¸öÌ×½Ó×Ö£¬°ó¶¨£¬¼ì²â·şÎñÆ÷
+	/// åˆ›å»ºä¸€ä¸ªå¥—æ¥å­—ï¼Œç»‘å®šï¼Œæ£€æµ‹æœåŠ¡å™¨
 	/// </summary>
-	/// <param name="_ip">ipµØÖ·</param>
-	/// <param name="_port">¶Ë¿Ú</param>
-	/// <returns>·µ»ØÕâÑùµÄÌ×½Ó×Ö</returns>
+	/// <param name="_ip">ipåœ°å€</param>
+	/// <param name="_port">ç«¯å£</param>
+	/// <returns>è¿”å›è¿™æ ·çš„å¥—æ¥å­—</returns>
 	int startup();
 
 	/// <summary>
-	/// »ØÉù´¦Àí
+	/// å›å£°å¤„ç†
 	/// </summary>
 	/// <param name="fd"></param>
 	/// <param name="data"></param>
 	static void do_echo_handler(int fd, void* data);
 
 	/// <summary>
-	/// ·¢ËÍ»¶Ó­ÏûÏ¢ºó½øÈëecho·şÎñÆ÷×´Ì¬
+	/// å‘é€æ¬¢è¿æ¶ˆæ¯åè¿›å…¥echoæœåŠ¡å™¨çŠ¶æ€
 	/// </summary>
 	/// <param name="fd"></param>
 	/// <param name="data"></param>
 	static void do_welcome_handler(int fd, void* data);
 
 	/// <summary>
-	/// ÏìÓ¦ÇëÇó
+	/// å“åº”è¯·æ±‚
 	/// </summary>
-	/// <param name="fd">·şÎñÆ÷¾ä±ú</param>
-	/// <param name="data">Êı¾İ</param>
+	/// <param name="fd">æœåŠ¡å™¨å¥æŸ„</param>
+	/// <param name="data">æ•°æ®</param>
 	static void do_echo_response(int fd, void* data);
 
 	/// <summary>
-	/// ³¬Ê±´¦Àí
+	/// è¶…æ—¶å¤„ç†
 	/// </summary>
-	/// <param name="fd">Òª¹Ø±ÕµÄÁ¬½Ó</param>
-	/// <param name="data">ÔÚÕâÀïÖ¸Á¬½Ó½á¹¹Ìå</param>
+	/// <param name="fd">è¦å…³é—­çš„è¿æ¥</param>
+	/// <param name="data">åœ¨è¿™é‡ŒæŒ‡è¿æ¥ç»“æ„ä½“</param>
 	static void do_echo_timeout(int fd, void* data);
 private:
-	char* m_ip;//·şÎñÆ÷IP
-	int m_port;//·şÎñÆ÷¶Ë¿Ú
-	static Comm* m_comm;//Í¨ÓÃÁ¬½ÓÀà
-	static int m_timeout;//Ä¬ÈÏ³¬Ê±´¦Àí
+	char* m_ip;//æœåŠ¡å™¨IP
+	int m_port;//æœåŠ¡å™¨ç«¯å£
+	static Comm* m_comm;//é€šç”¨è¿æ¥ç±»
+	static int m_timeout;//é»˜è®¤è¶…æ—¶å¤„ç†
 };
 
 #endif // !_SERVER_H_

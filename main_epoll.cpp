@@ -1,9 +1,9 @@
 #include "Server.h"
 
 /// <summary>
-/// ÓÃ·¨
+/// ç”¨æ³•
 /// </summary>
-/// <param name="argv">³ÌĞòÃû</param>
+/// <param name="argv">ç¨‹åºå</param>
 void usage(const char* argv)
 {
 	printf("%s:[ip][port]\n", argv);
@@ -11,31 +11,31 @@ void usage(const char* argv)
 
 int main(int argc, char** argv)
 {
-	if (argc != 3) //¼ì²â²ÎÊı¸öÊıÊÇ·ñÕıÈ·
+	if (argc != 3) //æ£€æµ‹å‚æ•°ä¸ªæ•°æ˜¯å¦æ­£ç¡®
 	{
 		usage(argv[0]);
 		exit(1);
 	}
 
-	//³õÊ¼»¯Á¬½Ó
+	//åˆå§‹åŒ–è¿æ¥
 	Server* server = new Server(argv[1], atoi(argv[2]));
-	int listen_sock = server->startup(); //´´½¨Ò»¸ö°ó¶¨ÁË±¾µØ ip ºÍ¶Ë¿ÚºÅµÄÌ×½Ó×ÖÃèÊö·û
+	int listen_sock = server->startup(); //åˆ›å»ºä¸€ä¸ªç»‘å®šäº†æœ¬åœ° ip å’Œç«¯å£å·çš„å¥—æ¥å­—æè¿°ç¬¦
 
-	//³õÊ¼»¯Á¬½Ó×´Ì¬
+	//åˆå§‹åŒ–è¿æ¥çŠ¶æ€
 	ConnectStat* stat = new ConnectStat(listen_sock);
 
-	//³õÊ¼»¯Òì²½ÊÂ¼ş´¦Àí¿ò¼Üepoll
+	//åˆå§‹åŒ–å¼‚æ­¥äº‹ä»¶å¤„ç†æ¡†æ¶epoll
 	Comm* comm = new Comm(102400);
 	comm->comm_init();
 	comm->commUpdateReadHandler(listen_sock, Server::accept_connection, (void*)stat);
 
-	//ÉèÖÃserverµÄÁ¬½Ó×´Ì¬
+	//è®¾ç½®serverçš„è¿æ¥çŠ¶æ€
 	server->set_comm(comm);
 
 	int ret = -1;
 	do
 	{
-		//²»¶ÏÑ­»·´¦ÀíÊÂ¼ş
+		//ä¸æ–­å¾ªç¯å¤„ç†äº‹ä»¶
 		ret = comm->comm_select(2000);
 	} while (ret <= 0);
 

@@ -1,3 +1,4 @@
+# in linux system, use makefile.
 srcs = main_epoll.c comm_epoll.c comm.c
 cflags = -g -w
 objects        := $(srcs:.c=.o)

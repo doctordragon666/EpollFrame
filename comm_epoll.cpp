@@ -4,12 +4,12 @@ CommEpoll::CommEpoll(fde*& fd_table)
 {
 	m_fde_table = fd_table;
 	epoll_fds = 0;
-	//printf("comm_epoll, fd_table%p init\n",m_fde_table);//ÎªÁË·ÀÖ¹¶à´Î¹¹Ôì£¬¿ÉÒÔÊ¹ÓÃµ¥ÀıÄ£Ê½
+	//printf("comm_epoll, fd_table%p init\n",m_fde_table);//ä¸ºäº†é˜²æ­¢å¤šæ¬¡æ„é€ ï¼Œå¯ä»¥ä½¿ç”¨å•ä¾‹æ¨¡å¼
 }
 
 CommEpoll::~CommEpoll()
 {
-	do_epoll_shutdown();//Íü¼Ç¹Ø±ÕÔÚÎö¹¹¹Ø±Õ
+	do_epoll_shutdown();//å¿˜è®°å…³é—­åœ¨ææ„å…³é—­
 }
 
 const char* CommEpoll::epolltype_atoi(int x)
@@ -133,7 +133,7 @@ void CommEpoll::epollSetEvents(int fd, int need_read, int need_write)
 
 	if (ev.events != epoll_state[fd])
 	{
-		/* Èç¹ûepollµÄÊÂ¼şÒÑ¾­±£´æÁË×´Ì¬ */
+		/* å¦‚æœepollçš„äº‹ä»¶å·²ç»ä¿å­˜äº†çŠ¶æ€ */
 		if (!ev.events)
 		{
 			epoll_ctl_type = EPOLL_CTL_DEL;
@@ -141,13 +141,13 @@ void CommEpoll::epollSetEvents(int fd, int need_read, int need_write)
 		else if (epoll_state[fd])
 		{
 			epoll_ctl_type = EPOLL_CTL_MOD;
-		}//Èç¹ûÏà¶ÔÔ­À´µÄÓĞ¸Ä±ä
+		}//å¦‚æœç›¸å¯¹åŸæ¥çš„æœ‰æ”¹å˜
 		else
 		{
 			epoll_ctl_type = EPOLL_CTL_ADD;
 		}
 
-		epoll_state[fd] = ev.events;//¸üĞÂÊÂ¼ş
+		epoll_state[fd] = ev.events;//æ›´æ–°äº‹ä»¶
 
 		if (epoll_ctl(epoll_instance, epoll_ctl_type, fd, &ev) < 0)
 		{

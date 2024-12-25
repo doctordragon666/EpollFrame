@@ -58,7 +58,7 @@ void Server::do_echo_handler(int fd, void* data)
 	p = stat->send_buf;
 	*p++ = '-';
 	*p++ = '>';
-	ssize_t _s = read(fd, p, BUFLEN - (p - stat->send_buf) - 1); // 2×Ö½Ú"->" +×Ö·û½áÊø·û.
+	ssize_t _s = read(fd, p, BUFLEN - (p - stat->send_buf) - 1); // 2å­—èŠ‚"->" +å­—ç¬¦ç»“æŸç¬¦.
 	if (_s > 0)
 	{
 
@@ -68,7 +68,7 @@ void Server::do_echo_handler(int fd, void* data)
 		// while( _s>=0 && ( stat->send_buf[_s]=='\r' || stat->send_buf[_s]=='\n' ) ) stat->send_buf[_s]='\0';
 
 		if (!strncasecmp(p, "quit", 4))
-		{ //ÍË³ö.
+		{ //é€€å‡º.
 			m_comm->comm_close(fd);
 			free(stat);
 			return;
@@ -113,7 +113,7 @@ void Server::do_welcome_handler(int fd, void* data)
 
 int Server::startup()
 {
-	// 1.´´½¨Ì×½Ó×Ö
+	// 1.åˆ›å»ºå¥—æŽ¥å­—
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0)
 	{
@@ -122,21 +122,21 @@ int Server::startup()
 	}
 
 	int opt = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));//ÉèÖÃ·Ç×èÈû
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));//è®¾ç½®éžé˜»å¡ž
 
-	// 2.Ìî³ä±¾µØ sockaddr_in ½á¹¹Ìå£¨ÉèÖÃ±¾µØµÄIPµØÖ·ºÍ¶Ë¿Ú£©
+	// 2.å¡«å……æœ¬åœ° sockaddr_in ç»“æž„ä½“ï¼ˆè®¾ç½®æœ¬åœ°çš„IPåœ°å€å’Œç«¯å£ï¼‰
 	struct sockaddr_in local;
 	local.sin_port = htons(m_port);
 	local.sin_family = AF_INET;
 	local.sin_addr.s_addr = inet_addr(m_ip);
 
-	// 3.bind£¨£©°ó¶¨
+	// 3.bindï¼ˆï¼‰ç»‘å®š
 	if (bind(sock, (struct sockaddr*)&local, sizeof(local)) < 0)
 	{
 		perror("bind");
 		exit(3);
 	}
-	// 4.listen£¨£©¼àÌý ¼ì²â·þÎñÆ÷
+	// 4.listenï¼ˆï¼‰ç›‘å¬ æ£€æµ‹æœåŠ¡å™¨
 	if (listen(sock, 5) < 0)
 	{
 		perror("listen");

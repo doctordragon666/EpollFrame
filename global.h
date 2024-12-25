@@ -1,11 +1,11 @@
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_
 
-//°üº¬µÄÍ·ÎÄ¼ş
-#include <sys/time.h>		//´òÓ¡ÊÂ¼ş´Á
+//åŒ…å«çš„å¤´æ–‡ä»¶
+#include <sys/time.h>		//æ‰“å°äº‹ä»¶æˆ³
 #include <sys/types.h>
 #include <sys/resource.h>	
-#include <sys/socket.h>		//socket·şÎñ
+#include <sys/socket.h>		//socketæœåŠ¡
 #include <netinet/in.h> 
 #include <arpa/inet.h>
 #include <sys/stat.h>
@@ -18,17 +18,17 @@
 #include <assert.h>
 #include <string.h>
 
-//µ÷ÊÔ¿ª¹Ø
+//è°ƒè¯•å¼€å…³
 static int Debug = 1;
 
-//Í¨ÓÃµÄÊı×é³¤¶È
+//é€šç”¨çš„æ•°ç»„é•¿åº¦
 #define BUFLEN 1024
 
-//×î´óÊÂ¼şÊıÁ¿
+//æœ€å¤§äº‹ä»¶æ•°é‡
 #define MAX_EVENTS 256 
 
 
-//commµ÷ÊÔĞÅÏ¢
+//commè°ƒè¯•ä¿¡æ¯
 #define COMM_OK		  (0)
 #define COMM_ERROR	 (-1)
 #define COMM_NOMESSAGE	 (-3)
@@ -40,43 +40,43 @@ static int Debug = 1;
 #define COMM_ERR_CLOSING (-9)
 #define INFO (4)
 
-//µ÷ÊÔº¯Êı
+//è°ƒè¯•å‡½æ•°
 #define DEBUG(level)    if(Debug && level > INFO) printf
 
-//°²È«ÊÍ·Å
+//å®‰å…¨é‡Šæ”¾
 #define safe_free(x)	if (x) { delete (x); x = nullptr; }
 
 
-/*ÏµÍ³Ê±¼äÏà¹Ø,ÉèÖÃ³ÉÈ«¾Ö±äÁ¿£¬¹©ËùÓĞÄ£¿éÊ¹ÓÃ*/
-static struct timeval current_time;//µ±Ç°Ê±¼ä£¬µ¥Î»Ãë
-static double current_dtime;//µ±Ç°µÄÊ±¼ä£¬·Ö
-static time_t sys_curtime;//ÏµÍ³Ê±¼ä
+/*ç³»ç»Ÿæ—¶é—´ç›¸å…³,è®¾ç½®æˆå…¨å±€å˜é‡ï¼Œä¾›æ‰€æœ‰æ¨¡å—ä½¿ç”¨*/
+static struct timeval current_time;//å½“å‰æ—¶é—´ï¼Œå•ä½ç§’
+static double current_dtime;//å½“å‰çš„æ—¶é—´ï¼Œåˆ†
+static time_t sys_curtime;//ç³»ç»Ÿæ—¶é—´
 
-typedef void PF(int, void*);//»Øµ÷º¯Êı£¬²ÎÊıÀàĞÍint ,void£¬·µ»ØÖµ¿Õ
+typedef void PF(int, void*);//å›è°ƒå‡½æ•°ï¼Œå‚æ•°ç±»å‹int ,voidï¼Œè¿”å›å€¼ç©º
 
 typedef struct _fde {
 	unsigned int type;
-	u_short local_port;//±¾µØ¶Ë¿Ú
-	u_short remote_port;//Ô¶³Ì£¨¿Í»§¶Ë£©¶Ë¿Ú
-	struct in_addr local_addr;//±¾µØµØÖ·
+	u_short local_port;//æœ¬åœ°ç«¯å£
+	u_short remote_port;//è¿œç¨‹ï¼ˆå®¢æˆ·ç«¯ï¼‰ç«¯å£
+	struct in_addr local_addr;//æœ¬åœ°åœ°å€
 
 	char ipaddr[16];		/* dotted decimal address of peer */
 
 
-	PF* read_handler;//¶Áº¯Êı
+	PF* read_handler;//è¯»å‡½æ•°
 	void* read_data;
 	PF* write_handler;
 	void* write_data;
 	PF* timeout_handler;
-	time_t timeout;//³¬Ê±¾ßÌåµÄÊ±¼ä
-	void* timeout_data;//³¬Ê±Êı¾İ
-}fde;//fde¾ä±ú½á¹¹Ìå
+	time_t timeout;//è¶…æ—¶å…·ä½“çš„æ—¶é—´
+	void* timeout_data;//è¶…æ—¶æ•°æ®
+}fde;//fdeå¥æŸ„ç»“æ„ä½“
 
 /// <summary>
-/// »ñÈ¡µ±Ç°Ê±¼ä
+/// è·å–å½“å‰æ—¶é—´
 /// </summary>
 /// <param name=""></param>
-/// <returns>µ±Ç°Ê±¼äµÄ½á¹¹Ìå</returns>
+/// <returns>å½“å‰æ—¶é—´çš„ç»“æ„ä½“</returns>
 inline time_t getCurrentTime(void)
 {
 	gettimeofday(&current_time, NULL);
@@ -87,10 +87,10 @@ inline time_t getCurrentTime(void)
 }
 
 /// <summary>
-/// ÊÇ·ñÎªºöÂÔµÄ´íÎó
+/// æ˜¯å¦ä¸ºå¿½ç•¥çš„é”™è¯¯
 /// </summary>
-/// <param name="ierrno">´íÎóºÅ</param>
-/// <returns>ÊÇ»òÕß·ñ</returns>
+/// <param name="ierrno">é”™è¯¯å·</param>
+/// <returns>æ˜¯æˆ–è€…å¦</returns>
 inline int ignoreErrno(int ierrno)
 {
 	switch (ierrno) {
@@ -111,10 +111,10 @@ inline int ignoreErrno(int ierrno)
 }
 
 /// <summary>
-/// »ñÈ¡µ±Ç°´íÎóÃèÊö²¢´òÓ¡
+/// è·å–å½“å‰é”™è¯¯æè¿°å¹¶æ‰“å°
 /// </summary>
 /// <param name=""></param>
-/// <returns>±ê×¼´íÎó¸ñÊ½</returns>
+/// <returns>æ ‡å‡†é”™è¯¯æ ¼å¼</returns>
 inline const char* xstrerror(void)
 {
 	static char xstrerror_buf[BUFSIZ];

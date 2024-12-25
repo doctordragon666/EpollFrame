@@ -5,7 +5,7 @@
 #include "global.h"
 
 /// <summary>
-/// epoll·â×°½Ó¿Ú
+/// epollå°è£…æ¥å£
 /// </summary>
 class CommEpoll
 {
@@ -14,51 +14,51 @@ public:
 	~CommEpoll();
 
 	/// <summary>
-	/// ·µ»Øepoll²Ù×÷µÄ×Ö·û´®¸ñÊ½
+	/// è¿”å›epollæ“ä½œçš„å­—ç¬¦ä¸²æ ¼å¼
 	/// </summary>
-	/// <param name="x">EPOLL_CTL_ADDµÄ²Ù×÷·ûºÅ</param>
-	/// <returns>EPOLL_CTL_ADD×Ö·û´®</returns>
+	/// <param name="x">EPOLL_CTL_ADDçš„æ“ä½œç¬¦å·</param>
+	/// <returns>EPOLL_CTL_ADDå­—ç¬¦ä¸²</returns>
 	static const char* epolltype_atoi(int x);
 
 	/// <summary>
-	/// µ÷ÓÃfd´¦Àíº¯Êı
+	/// è°ƒç”¨fdå¤„ç†å‡½æ•°
 	/// </summary>
-	/// <param name="fd">¶ÔÓ¦µÄsocketÃèÊö·û</param>
-	/// <param name="read_event">¶Á±êÖ¾£¬ĞèÒªÖ´ĞĞ¶ÁÊÂ¼şÊ±ÖÃÎª1</param>
-	/// <param name="write_event">Ğ´±êÖ¾£¬ĞèÒªÖ´ĞĞĞ´ÊÂ¼şÊ±ÖÃÎª1</param>
+	/// <param name="fd">å¯¹åº”çš„socketæè¿°ç¬¦</param>
+	/// <param name="read_event">è¯»æ ‡å¿—ï¼Œéœ€è¦æ‰§è¡Œè¯»äº‹ä»¶æ—¶ç½®ä¸º1</param>
+	/// <param name="write_event">å†™æ ‡å¿—ï¼Œéœ€è¦æ‰§è¡Œå†™äº‹ä»¶æ—¶ç½®ä¸º1</param>
 	void comm_call_handlers(int fd, int read_event, int write_event);
 
 	/// <summary>
-	/// epoll³õÊ¼»¯£¬²¢ÇÒ³õÊ¼»¯Ò»¸öepoll×´Ì¬
+	/// epollåˆå§‹åŒ–ï¼Œå¹¶ä¸”åˆå§‹åŒ–ä¸€ä¸ªepollçŠ¶æ€
 	/// </summary>
-	/// <param name="max_fd">×î´ó¾ä±úÊı</param>
+	/// <param name="max_fd">æœ€å¤§å¥æŸ„æ•°</param>
 	void do_epoll_init(int max_fd);
 
 	/// <summary>
-	/// ¹Ø±ÕepollÁ¬½Ó£¬ÊÍ·ÅÁ¬½Ó×´Ì¬
+	/// å…³é—­epollè¿æ¥ï¼Œé‡Šæ”¾è¿æ¥çŠ¶æ€
 	/// </summary>
 	void do_epoll_shutdown();
 
 	/// <summary>
-	/// µÈ´ıepollÊÂ¼ş³öÏÖ²¢ÇÒ´¦Àí
+	/// ç­‰å¾…epolläº‹ä»¶å‡ºç°å¹¶ä¸”å¤„ç†
 	/// </summary>
-	/// <param name="msec">¼ì²éµÄÊ±¼ä¼ä¸ô</param>
-	/// <returns>COMMÀàĞÍµÄµ÷ÊÔĞÅÏ¢</returns>
+	/// <param name="msec">æ£€æŸ¥çš„æ—¶é—´é—´éš”</param>
+	/// <returns>COMMç±»å‹çš„è°ƒè¯•ä¿¡æ¯</returns>
 	int do_epoll_select(int msec);
 
 	/// <summary>
-	/// epollÉèÖÃÊÂ¼ş
+	/// epollè®¾ç½®äº‹ä»¶
 	/// </summary>
-	/// <param name="fd">ÎÄ¼şÃèÊö·û</param>
-	/// <param name="need_read">ÊÇ·ñĞèÒª¶ÁÈ¡</param>
-	/// <param name="need_write">ÊÇ·ñĞèÒªĞ´Èë</param>
+	/// <param name="fd">æ–‡ä»¶æè¿°ç¬¦</param>
+	/// <param name="need_read">æ˜¯å¦éœ€è¦è¯»å–</param>
+	/// <param name="need_write">æ˜¯å¦éœ€è¦å†™å…¥</param>
 	void epollSetEvents(int fd, int need_read, int need_write);
 private:
-	fde* m_fde_table;//commµÄfde±í£¬¼õÉÙñîºÏ²»Ê¹ÓÃcomm¶ÔÏó
-	struct epoll_event events[MAX_EVENTS];//´æ·ÅepollÊÂ¼şµÄÊı×é
-	int epoll_instance;//epollÊµÀı¾ä±ú
-	int epoll_fds;//epollÊÂ¼şµÄ×ÜºÍ
-	unsigned int* epoll_state; // ±£´æÃ¿¸öepoll µÄÊÂ¼ş×´Ì¬ 
+	fde* m_fde_table;//commçš„fdeè¡¨ï¼Œå‡å°‘è€¦åˆä¸ä½¿ç”¨commå¯¹è±¡
+	struct epoll_event events[MAX_EVENTS];//å­˜æ”¾epolläº‹ä»¶çš„æ•°ç»„
+	int epoll_instance;//epollå®ä¾‹å¥æŸ„
+	int epoll_fds;//epolläº‹ä»¶çš„æ€»å’Œ
+	unsigned int* epoll_state; // ä¿å­˜æ¯ä¸ªepoll çš„äº‹ä»¶çŠ¶æ€ 
 };
 
 #endif // !_COMM_EPOLL_H_

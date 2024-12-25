@@ -1,24 +1,26 @@
-#include "Server.h"
+/*************************************************
+Date: 2024年12月1日14点09分
+Description:测试自己的API
+*************************************************/
 
-/// <summary>
-/// 用法
-/// </summary>
-/// <param name="argv">程序名</param>
+#include "Server.h"
+#include <memory>
+
 void usage(const char* argv)
 {
-	printf("%s:[ip][port]\n", argv);
+	
 }
 
 int main(int argc, char** argv)
 {
 	if (argc != 3) //检测参数个数是否正确
 	{
-		usage(argv[0]);
+		printf("%s [ip] [port]\n", argv[0]);
 		exit(1);
 	}
 
 	//初始化连接
-	Server* server = new Server(argv[1], atoi(argv[2]));
+	std::unique_ptr<Server> server(new Server(argv[1], atoi(argv[2])));
 	int listen_sock = server->startup(); //创建一个绑定了本地 ip 和端口号的套接字描述符
 
 	//初始化连接状态
@@ -41,7 +43,6 @@ int main(int argc, char** argv)
 
 	comm->comm_select_shutdown();
 
-	safe_free(server);
 	safe_free(comm);
 	safe_free(stat);
 }	

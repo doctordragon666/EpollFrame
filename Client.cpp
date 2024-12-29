@@ -1,3 +1,9 @@
+/*************************************************
+Date: 2024年12月1日10点59分
+Description: 连接到本地的服务器，首先接收服务器的
+回复，然后读取控制台的内容，发送给服务器
+*************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +12,6 @@
 #include <unistd.h>
 
 #define BUFFER_SIZE 1024
-
 int main(int argc, char *argv[]) {
     int sock;
     struct sockaddr_in server;

@@ -168,12 +168,6 @@ void do_echo_response(int fd, void *data)
 	}
 }
 
-// read()
-//注册写事件
-
-//写事件就绪
-// write()
-
 void accept_connection(int fd, void *data)
 {
 	struct sockaddr_in peer;
@@ -204,13 +198,15 @@ void do_echo_timeout(int fd, void *data)
 int main(int argc, char **argv)
 {
 
-	if (argc != 3) //检测参数个数是否正确
-	{
-		usage(argv[0]);
-		exit(1);
-	}
+	// if (argc != 3) //检测参数个数是否正确
+	// {
+	// 	usage(argv[0]);
+	// 	exit(1);
+	// }
 
-	int listen_sock = startup(argv[1], atoi(argv[2])); //创建一个绑定了本地 ip 和端口号的套接字描述符
+	// int listen_sock = startup(argv[1], atoi(argv[2])); //创建一个绑定了本地 ip 和端口号的套接字描述符
+	int listen_sock = startup("127.0.0.1", 8080); //创建一个绑定了本地 ip 和端口号的套接字描述符
+
 	//初始化异步事件处理框架epoll
 
 	comm_init(102400);
@@ -220,10 +216,13 @@ int main(int argc, char **argv)
 
 	do
 	{
-		//不断循环处理事件
+		//不断循环处理事件`
 		comm_select(1000);
 
 	} while (1 == 1);
 
 	comm_select_shutdown();
+
+	return 0;
 }
+ //  如果以上条件都不满足，则执行以下代码

@@ -16,6 +16,7 @@ EpollManager::~EpollManager()
 
 bool EpollManager::init()
 {
+    if (epoll_instance != -1) return true;//已经初始化。
     epoll_instance = epoll_create(MAX_EVENTS);
     if (epoll_instance == -1)
     {
@@ -26,7 +27,7 @@ bool EpollManager::init()
     return true;
 }
 
-void EpollManager::set_write_event(int fd, struct MyepollEvent* arg)
+void EpollManager::set_write_event(int fd, struct MyepollEvent*& arg)
 {
     if (fd < 0 || fd >= MAX_EVENTS || arg == nullptr || arg->type != EPOLL_WRITE_EVENT)
     {
@@ -38,11 +39,7 @@ void EpollManager::set_write_event(int fd, struct MyepollEvent* arg)
     memset(&ev, 0, sizeof(ev));
     ev.events = EPOLLOUT | EPOLLHUP | EPOLLERR;
     ev.data.ptr = arg;
-    // if (fd_table[fd].events & EPOLLIN)
-    // {
-        //已经有读事件，那么要加上
-        // ev.events |= EPOLLIN;
-        // ev.data.ptr = new MyepollEventPlus(fd_table[fd].data.ptr);
+
     if (epoll_ctl(epoll_instance, EPOLL_CTL_MOD, fd, &ev) == -1)
     {
         if (epoll_ctl(epoll_instance, EPOLL_CTL_ADD, fd, &ev) == -1)
@@ -74,7 +71,7 @@ void EpollManager::set_read_event(int fd, struct MyepollEvent*& arg)
 
     if (epoll_ctl(epoll_instance, EPOLL_CTL_ADD, fd, &ev) == -1)
     {
-        ERROR("epoll_ctl");
+        ERROR("set read only event!");
         return;
     }
     DEBUG("set_read_event fd:%d\n", arg->fd);
@@ -102,6 +99,12 @@ void EpollManager::set_event(int fd, MyepollEvent* arg)
 
 void EpollManager::add_server(int fd, epollCb accept_cb)
 {
+    if (fd < 0 || fd >= MAX_EVENTS || accept_cb == nullptr)
+    {
+        DEBUG("add_server failed - fd:%d is invalid\n", fd);
+        return;
+    }
+    
     struct MyepollEvent* arg = new MyepollEvent;
     arg->fd = fd;
     arg->type = EPOLL_MAIN_EVENT;
@@ -110,18 +113,9 @@ void EpollManager::add_server(int fd, epollCb accept_cb)
     set_read_event(fd, arg);
 }
 
-void EpollManager::remove_event(int fd)
+int EpollManager::select(int timeout)
 {
-    perror("test");
-}
-
-void EpollManager::set_timeout_event(int fd, MyepollEvent* arg)
-{
-}
-
-int EpollManager::select()
-{
-    int nevents = epoll_wait(epoll_instance, fd_table, MAX_EVENTS, 1000);
+    int nevents = epoll_wait(epoll_instance, fd_table, MAX_EVENTS, timeout);
     if (nevents < 0)
     {
         ERROR("EpollManager::select epoll failure");
@@ -153,4 +147,5 @@ void EpollManager::del_event(int fd)
 {
     if (fd < 0 || fd >= MAX_EVENTS) return;
     epoll_ctl(epoll_instance, EPOLL_CTL_DEL, fd, nullptr);
+    close(fd);
 }

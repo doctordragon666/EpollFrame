@@ -11,6 +11,9 @@
         "socket": "cpp",
         "string_view": "cpp",
         "*.tcc": "cpp",
-        "io_context": "cpp"
-    }
+        "io_context": "cpp",
+        "epoll.h": "c",
+        "network.h": "c"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
 }

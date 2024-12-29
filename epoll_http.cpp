@@ -1,3 +1,27 @@
+/*************************************************
+Date: 2024年12月1日10点59分
+Description: epoll实现http服务器
+graph LR
+A[客户端连接] --> B[将客户端的fd加入epoll]
+B --> C[等待客户端发送请求]
+C --> D[读取请求内容到缓冲区]
+D --> E[根据请求内容调用不同的处理函数]
+E --> F[将响应内容写入缓冲区]
+
+原理说明：使用epoll监听客户端的连接，当客户端连接时，
+将客户端的fd加入epoll，然后等待客户端发送请求，
+当客户端发送请求时，将请求内容读取到缓冲区，
+然后根据请求内容，调用不同的处理函数，
+处理函数将响应内容写入缓冲区
+
+函数说明：
+stat_init：初始化连接状态
+connect_handle：处理客户端连接
+do_http_request：处理http请求
+welcome_response_handler：处理欢迎页面请求
+commit_respone_handler：处理提交页面请求
+*************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,10 +36,11 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "Network.h"
 
 typedef struct _ConnectStat ConnectStat;
 
-typedef void (*response_handler)(ConnectStat *stat);
+typedef void (*response_handler)(ConnectStat* stat);
 const int debug = 0;
 
 struct _ConnectStat
@@ -28,167 +53,22 @@ struct _ConnectStat
     response_handler handler; //不同页面的处理函数
 };
 
-ConnectStat *stat_init(int fd);
+ConnectStat* stat_init(int fd);
 void connect_handle(int new_fd);
-void do_http_respone(ConnectStat *stat);
-void do_http_request(ConnectStat *stat);
-void welcome_response_handler(ConnectStat *stat);
-void commit_respone_handler(ConnectStat *stat);
+void do_http_request(ConnectStat* stat);
+void welcome_response_handler(ConnectStat* stat);
+void commit_respone_handler(ConnectStat* stat);
 
-const char *main_header = "HTTP/1.0 200 OK\r\nServer: Martin Server\r\nContent-Type: text/html\r\nConnection: Close\r\n";
+const char* main_header = "HTTP/1.0 200 OK\r\nServer: Dragon Server\r\nContent-Type: text/html\r\nConnection: Close\r\n";
 
 static int epfd = 0;
-
-/// @brief 提示用法
-/// @param argv 程序名称
-void usage(const char *argv)
-{
-    printf("%s:[ip][port]\n", argv);
-}
-
-/// @brief 设置非阻塞
-/// @param fd 服务器fd
-void set_nonblock(int fd)
-{
-    int fl = fcntl(fd, F_GETFL);
-    fcntl(fd, F_SETFL, fl | O_NONBLOCK);
-}
-
-/// @brief 创建一个套接字，绑定，检测服务器
-/// @param _ip ip char*类型
-/// @param _port 端口int
-/// @return 创建的服务器句柄
-int startup(char *_ip, int _port)
-{
-    // sock
-    // 1.创建套接字
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0)
-    {
-        perror("sock");
-        exit(2);
-    }
-
-    int opt = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); //关闭服务器后接触绑定
-
-    // 2.填充本地 sockaddr_in 结构体（设置本地的IP地址和端口）
-    struct sockaddr_in local;
-    local.sin_port = htons(_port);
-    local.sin_family = AF_INET;
-    local.sin_addr.s_addr = inet_addr(_ip);
-
-    // 3.bind（）绑定
-    if (bind(sock, (struct sockaddr *)&local, sizeof(local)) < 0)
-    {
-        perror("bind");
-        exit(3);
-    }
-    // 4.listen（）监听 检测服务器
-    if (listen(sock, 5) < 0)
-    {
-        perror("listen");
-        exit(4);
-    }
-    // sleep(1000);
-    return sock; //这样的套接字返回
-}
-
-int main(int argc, char *argv[])
-{
-    if (argc != 3) //检测参数个数是否正确
-    {
-        usage(argv[0]);
-        exit(1);
-    }
-
-    int listen_sock = startup(argv[1], atoi(argv[2])); //创建一个绑定了本地 ip 和端口号的套接字描述符
-
-    // 1.创建epoll
-    epfd = epoll_create(256); //可处理的最大句柄数256个
-    if (epfd < 0)
-    {
-        perror("epoll_create");
-        exit(5);
-    }
-
-    struct epoll_event _ev; // epoll结构填充
-    ConnectStat *stat = stat_init(listen_sock);
-    _ev.events = EPOLLIN; //监听读事件
-    _ev.data.ptr = stat;
-
-    // 2.托管
-    epoll_ctl(epfd, EPOLL_CTL_ADD, listen_sock, &_ev); //将listen sock添加到epfd中
-
-    struct epoll_event revs[64]; //事件组
-
-    int timeout = -1;
-    int num = 0;
-    int done = 0;
-
-    while (!done)
-    {
-        // epoll_wait()相当于在检测事件
-        switch ((num = epoll_wait(epfd, revs, 64, timeout))) //返回需要处理的事件数目  64表示 事件有多大
-        {
-        case 0: //返回0 ，表示监听超时
-            printf("timeout\n");
-            break;
-        case -1: //出错
-            perror("epoll_wait");
-            break;
-        default: //大于零 即就是返回了需要处理事件的数目
-        {
-            struct sockaddr_in peer;
-            socklen_t len = sizeof(peer);
-
-            int i;
-            for (i = 0; i < num; i++)
-            {
-                ConnectStat *stat = (ConnectStat *)revs[i].data.ptr;
-
-                int rsock = stat->fd;                                    //准确获取哪个事件的描述符
-                if (rsock == listen_sock && (revs[i].events) && EPOLLIN) //如果是初始的 就接受，建立链接
-                {
-                    int new_fd = accept(listen_sock, (struct sockaddr *)&peer, &len);
-
-                    if (new_fd > 0)
-                    {
-                        printf("get a new client:%s:%d\n", inet_ntoa(peer.sin_addr), ntohs(peer.sin_port));
-                        // sleep(1000);
-                        connect_handle(new_fd);
-                    }
-                }
-                else // 接下来对num - 1 个事件处理
-                {
-                    if (revs[i].events & EPOLLIN)
-                    {
-                        do_http_request((ConnectStat *)revs[i].data.ptr);
-                    }
-                    else if (revs[i].events & EPOLLOUT)
-                    {
-                        do_http_respone((ConnectStat *)revs[i].data.ptr);
-                    }
-                    else
-                    {
-                    }
-                }
-            }
-            printf("------------\n");
-        }
-        break;
-        } // end switch
-    }     // end while
-    return 0;
-}
 
 /// @brief 初始化连接状态
 /// @param fd 服务器句柄
 /// @return 返回包含服务器句柄未登陆的连接状态
-ConnectStat *stat_init(int fd)
+ConnectStat* stat_init(int fd)
 {
-    ConnectStat *temp = NULL;
-    temp = (ConnectStat *)malloc(sizeof(ConnectStat));
+    ConnectStat* temp = (ConnectStat*)malloc(sizeof(ConnectStat));
 
     if (!temp)
     {
@@ -199,36 +79,30 @@ ConnectStat *stat_init(int fd)
     memset(temp, '\0', sizeof(ConnectStat));
     temp->fd = fd;
     temp->status = 0;
-    // temp->handler = welcome_response_handler;
+    temp->handler = welcome_response_handler;
+    return temp;
 }
 
 /// @brief 初始化连接，然后等待浏览器发送请求
 /// @param new_fd 客户端的fd
 void connect_handle(int new_fd)
 {
-    ConnectStat *stat = stat_init(new_fd);
+    ConnectStat* stat = stat_init(new_fd);
     set_nonblock(new_fd);
 
     stat->_ev.events = EPOLLIN;
     stat->_ev.data.ptr = stat;
 
-    epoll_ctl(epfd, EPOLL_CTL_ADD, new_fd, &stat->_ev); //二次托管
-}
-
-/// @brief 根据连接状态的函数来启动不同的响应函数
-/// @param stat 连接状态
-void do_http_respone(ConnectStat *stat)
-{
-    stat->handler(stat);
+    epoll_ctl(epfd, EPOLL_CTL_ADD, new_fd, &stat->_ev); //将客户端句柄添加到epoll中
 }
 
 /// @brief 处理请求
 /// @param stat
-void do_http_request(ConnectStat *stat)
+void do_http_request(ConnectStat* stat)
 {
     //读取和解析http 请求
     char buf[4096];
-    char *pos = NULL;
+    char* pos = NULL;
     // while  header \r\n\r\ndata
     ssize_t _s = read(stat->fd, buf, sizeof(buf) - 1);
     if (_s > 0)
@@ -257,7 +131,7 @@ void do_http_request(ConnectStat *stat)
 
                 printf("post commit --------\n");
                 pos = strstr(buf, "\r\n\r\n");
-                char *end = NULL;
+                char* end = NULL;
                 if (end = strstr(pos, "name="))
                 {
                     pos = end + strlen("name=");
@@ -316,9 +190,9 @@ void do_http_request(ConnectStat *stat)
 
 /// @brief 欢迎界面
 /// @param stat
-void welcome_response_handler(ConnectStat *stat)
+void welcome_response_handler(ConnectStat* stat)
 {
-    const char *welcome_content = "\
+    const char* welcome_content = "\
 <html lang=\"zh-CN\">\n\
 <head>\n\
 <meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n\
@@ -327,7 +201,7 @@ void welcome_response_handler(ConnectStat *stat)
 <body>\n\
 <div align=center height=\"500px\" >\n\
 <br/><br/><br/>\n\
-<h2>大家好，欢迎来到奇牛学院VIP 课！</h2><br/><br/>\n\
+<h2>大家好，欢迎使用EpollFrame</h2><br/><br/>\n\
 <form action=\"commit\" method=\"post\">\n\
 尊姓大名: <input type=\"text\" name=\"name\" />\n\
 <br/>芳龄几何: <input type=\"password\" name=\"age\" />\n\
@@ -355,9 +229,9 @@ void welcome_response_handler(ConnectStat *stat)
     epoll_ctl(epfd, EPOLL_CTL_MOD, stat->fd, &stat->_ev);
 }
 
-void commit_respone_handler(ConnectStat *stat)
+void commit_respone_handler(ConnectStat* stat)
 {
-    const char *commit_content = "\
+    const char* commit_content = "\
 <html lang=\"zh-CN\">\n\
 <head>\n\
 <meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n\
@@ -388,4 +262,86 @@ void commit_respone_handler(ConnectStat *stat)
 
     stat->_ev.events = EPOLLIN;
     epoll_ctl(epfd, EPOLL_CTL_MOD, stat->fd, &stat->_ev);
+}
+
+int main(int argc, char* argv[])
+{
+    Network::TCPSocket sock("127.0.0.1", 80);
+    if (!sock.setAsServer())
+    {
+        return -1;
+    }
+    int listen_sock = sock.m_fd;
+    ConnectStat* stat = stat_init(listen_sock);
+
+    // 1.创建epoll
+    epfd = epoll_create(256); //可处理的最大句柄数256个
+    if (epfd < 0)
+    {
+        perror("epoll_create");
+        exit(5);
+    }
+
+    struct epoll_event ev; // epoll结构填充
+    ev.events = EPOLLIN; //监听读事件
+    ev.data.ptr = stat;
+
+    // 2.托管
+    epoll_ctl(epfd, EPOLL_CTL_ADD, listen_sock, &ev); //将listen sock添加到epfd中
+
+    struct epoll_event revs[64]; //事件组
+
+    int timeout = -1;
+    int num = 0;
+
+    while (true)
+    {
+        // epoll_wait()相当于在检测事件
+        switch ((num = epoll_wait(epfd, revs, 64, timeout))) //返回需要处理的事件数目  64表示 事件有多大
+        {
+        case 0: //返回0 ，表示监听超时
+            printf("timeout\n");
+            break;
+        case -1: //出错
+            perror("epoll_wait");
+            break;
+        default: //大于零 即就是返回了需要处理事件的数目
+        {
+            struct sockaddr_in peer;
+            socklen_t len = sizeof(peer);
+
+            for (int i = 0; i < num; i++)
+            {
+                ConnectStat* stat = (ConnectStat*)revs[i].data.ptr;
+
+                int rsock = stat->fd;                                    //准确获取哪个事件的描述符
+                if (rsock == listen_sock && (revs[i].events) && EPOLLIN) //如果是初始的 就接受，建立链接
+                {
+                    int new_fd = accept(listen_sock, (struct sockaddr*)&peer, &len);
+
+                    if (new_fd > 0)
+                    {
+                        printf("get a new client:%s:%d\n", inet_ntoa(peer.sin_addr), ntohs(peer.sin_port));
+                        // sleep(1000);
+                        connect_handle(new_fd);
+                    }
+                }
+                else // 接下来对num - 1 个事件处理
+                {
+                    if (revs[i].events & EPOLLIN)
+                    {
+                        do_http_request(stat);
+                    }
+                    else if (revs[i].events & EPOLLOUT)
+                    {
+                        stat->handler(stat);
+                    }
+                }
+            }
+            printf("------------\n");
+        }
+        break;
+        } // end switch
+    }     // end while
+    return 0;
 }

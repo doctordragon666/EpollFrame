@@ -1,15 +1,22 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
+/****************************************
+ * Network.h头文件说明
+ * 定义了TCPSocket类，用于封装TCP套接字操作
+ * 提供了set_nonblock函数用于设置非阻塞
+ * welcome、read、accept函数用于处理TCP连接
+ ***************************************/
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #include "EpollManager.h"
-#include <fcntl.h>
 
 /// @brief 设置非阻塞
 /// @param fd 文件描述符
@@ -92,6 +99,7 @@ namespace Network {
         }
 
         bool setAsServer();
+        bool setAsClient();
     };
 }
 
@@ -111,6 +119,15 @@ bool Network::TCPSocket::setAsServer()
             inet_ntoa(m_addr.sin_addr),
             ntohs(m_addr.sin_port),
             m_fd);
+    }
+    return true;
+}
+
+bool Network::TCPSocket::setAsClient()
+{
+    if (connect(m_fd, (struct sockaddr*)&m_addr, sizeof(m_addr)) == -1) {
+        perror("connect");
+        return false;
     }
     return true;
 }

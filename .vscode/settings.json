@@ -1,6 +1,16 @@
 {
     "Codegeex.RepoIndex": true,
     "files.associations": {
-        "memory": "cpp"
+        "memory": "cpp",
+        "new": "cpp",
+        "internet": "cpp",
+        "ratio": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "buffer": "cpp",
+        "socket": "cpp",
+        "string_view": "cpp",
+        "*.tcc": "cpp",
+        "io_context": "cpp"
     }
 }

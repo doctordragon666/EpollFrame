@@ -4,4 +4,5 @@ cmake_minimum_required(VERSION 3.5.0)
 project(EpollFrame)
 
 set(CMAKE_CXX_STANDARD 11)
-add_executable(EpollFrame main.cpp Server.cpp comm.cpp comm_epoll.cpp)
+# add_executable(EpollFrame main.cpp Server.cpp EpollManager.cpp Network.cpp)
+add_executable(EpollFrameTest test_main.cpp EpollManager.cpp Network.h)

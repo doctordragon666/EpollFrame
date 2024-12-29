@@ -1,7 +1,7 @@
 ﻿#ifndef GLOBALS_H
 #define GLOBALS_H
 
-#define	__USE_MISC
+#define _XOPEN_SOURCE
 
 #include <sys/time.h>
 #include <sys/resource.h>	
@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <assert.h>
-#define FD_DESC_SZ		64
+#define FD_DESC_SZ		64 /* number of file descriptors */
 
 #define COMM_OK		  (0)
 #define COMM_ERROR	 (-1)
@@ -29,7 +29,7 @@
 #define COMM_ERR_DNS     (-8)
 #define COMM_ERR_CLOSING (-9)
 
-#define _XOPEN_SOURCE
+
 //调试相关
 #define DEBUG_LEVEL  0
 #define DEBUG_ONLY   8
@@ -41,8 +41,8 @@ typedef void PF(int, void *);
 
 struct _fde {
     unsigned int type;
-    u_short local_port;
-    u_short remote_port;
+    unsigned short int local_port;
+    unsigned short int remote_port;
     struct in_addr local_addr;
  
     char ipaddr[16];		/* dotted decimal address of peer */
